@@ -1,0 +1,13 @@
+#pragma once
+
+#include "vec3.h"
+
+color: type == vec3_template<double>;
+
+write_color: (inout out_stream: std::ostream, pixel_color: color) = {
+    rbyte := cpp2::unsafe_narrow<int>(255.999 * pixel_color.x());
+    gbyte := cpp2::unsafe_narrow<int>(255.999 * pixel_color.y());
+    bbyte := cpp2::unsafe_narrow<int>(255.999 * pixel_color.z());
+
+    out_stream << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
+}

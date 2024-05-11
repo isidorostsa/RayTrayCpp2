@@ -1,0 +1,94 @@
+#include "vec3.h"
+#include "color.h"
+#include "ray.h"
+
+ray_color: (r: ray) -> color = {
+    if (hit_sphere(point3(0, 0, -1), 0.5, r)) {
+        return color(1, 0, 0);
+    }
+
+    unit_dir :=  r.direction().unit_vector();
+    a := 0.5*(unit_dir.y() + 1.0);
+
+    white := color(1.0, 1.0, 1.0);
+    blue_ish := color(0.5, 0.7, 1.0);
+
+    return (1.0-a)*white + a*blue_ish;
+}
+
+hit_sphere: (center: point3, radious: double, r: ray) -> bool = {
+    orig_to_ct := center - r.origin();
+
+    // coeffs
+    a := dot(r.direction(), r.direction());
+    b := -2.0 * dot(r.direction(), orig_to_ct);
+    c := dot(orig_to_ct, orig_to_ct) - radious*radious;
+
+    discriminant := b*b - 4*a*c;
+
+    return discriminant >= 0;
+}
+
+main: (args) -> int
+= {
+    // Calculate image dimentions
+    aspect_ratio: double == 16.0/9.0;
+    
+    image_width: uint == 400;
+    image_height: uint == cpp2::unsafe_narrow<uint>(image_width/aspect_ratio);
+    static_assert(image_height, "Height must be greater than 0");
+
+    // Camera related
+
+    focal_length: double == 1.0;
+
+    viewport_height: double == 2.0;
+    viewport_width: double == viewport_height * 
+        (cpp2::unsafe_narrow<double>(image_width)/image_height);
+    camera_center := point3(0, 0, 0);
+
+    //  Vectors across horizontal and vertical edges of the viewport window
+    viewport_u := vec3(viewport_width, 0, 0);
+    viewport_v := vec3(0, -viewport_height, 0);
+
+    // Horizontal and Vecrtival vectors from pixel to pixel
+    pixel_du := viewport_u / image_width;
+    pixel_dv := viewport_v / image_height;
+
+    // Calculate the upper left corner of the viewport window
+    viewport_upper_left := 
+            camera_center - // starting from 0
+            vec3(0, 0, focal_length) - // to the center of the viewport
+            viewport_u/2 - // vvv
+            viewport_v/2;  // to the upper left side
+
+    // calculate the center of the upper left (0, 0) pixel
+    pixel00_loc := 
+            viewport_upper_left +
+            0.5 * (pixel_du + pixel_dv);
+
+    // Rendering
+
+    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+
+    for std::views::iota(0 as uint, image_height) do(j) {
+        std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+        for std::views::iota(0 as uint, image_width) do (i) {
+            pixel_center := pixel00_loc + (i * pixel_du) + (j * pixel_dv);
+
+            ray_direction := pixel_center - camera_center;
+
+            r := ray(camera_center, ray_direction);
+
+
+            pixel_color: color = ray_color(r);
+
+
+            // pixel_color := color(
+            //     cpp2::unsafe_narrow<double>(i)/(image_width-1),
+            //     cpp2::unsafe_narrow<double>(j)/(image_height-1),
+            //     0.0);
+            write_color(std::cout, pixel_color);
+        }
+    }
+}

@@ -1,0 +1,94 @@
+#pragma once
+
+vec3_template: <T> type = {
+    public e: std::array<T, 3>;
+
+    operator=: (out this, that) = {
+        e = that.e;
+    }
+
+    operator=: (out this) = {
+        e = (0, 0, 0);
+    }
+
+    operator=: (out this, e0: T, e1: T, e2: T) = {
+        e = (e0, e1, e2);
+    }
+
+    // accessors
+    x: (this) e[0];
+    y: (this) e[1];
+    z: (this) e[2];
+
+    operator[]: (this, i: int) -> T = e[i];
+    operator[]: (inout this, i: int) -> forward T = e[i];
+
+    // operators
+    operator-: (this)
+        vec3_template(-x(), -y(), -z());
+
+    operator+=: (inout this, that) -> forward vec3_template = {
+        e[0] += that.e[0];
+        e[1] += that.e[1];
+        e[2] += that.e[2];
+        return this;
+    }
+
+    operator*=: (inout this, t: _) -> forward vec3_template = {
+        e[0] *= t;
+        e[1] *= t;
+        e[2] *= t;
+        return this;
+    }
+
+    operator/=: (inout this, t: _) -> forward vec3_template = {
+        return this *= 1/t;
+    }
+
+    length_squared: (this)
+        e[0]*e[0] + e[1]*e[1] + e[2]*e[2];
+
+    length: (this)
+        std::sqrt(this.length_squared());
+}
+
+vec3: type == vec3_template<double>;
+point3: type == vec3_template<double>;
+
+operator<<: <T> (inout os: std::ostream, v: vec3_template<T>) -> forward _ = {
+    os << "x: " << v.x() << ", y: " << v.y() << ", z: " << v.z() << std::endl;
+    return os;
+}
+
+operator-: <T> (u: vec3_template<T>, v: vec3_template<T>)
+    vec3_template<T>(u.e[0] - v.e[0], u.e[1] - v.e[1], u.e[2] - v.e[2]);
+
+operator+: <T> (u: vec3_template<T>, v: vec3_template<T>)
+    vec3_template<T>(u.e[0] + v.e[0], u.e[1] + v.e[1], u.e[2] + v.e[2]);
+
+operator*: <T> (u: vec3_template<T>, v: vec3_template<T>)
+    vec3_template<T>(u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]);
+
+operator*: <T> (t: _, v: vec3_template<T>)
+    vec3_template<T>(t * v.e[0], t * v.e[1], t * v.e[2]);
+
+operator*: <T> (v: vec3_template<T>, t: _)
+    t * v;
+
+operator/: <T> (v: vec3_template<T>, t: _)
+    ((cpp2::unsafe_narrow<T>(1))/t) * v;
+
+dot: <T> (v: vec3_template<T>, u: vec3_template<T>)
+    v.e[0] * u.e[0] + 
+    v.e[1] * u.e[1] + 
+    v.e[2] * u.e[2];
+
+cross: <T> (v: vec3_template<T>, u: vec3_template<T>)
+    vec3_template<T>(
+        u.e[1] * v.e[2] - u.e[2] * v.e[1],
+        u.e[2] * v.e[0] - u.e[0] * v.e[2],
+        u.e[0] * v.e[1] - u.e[1] * v.e[0]
+    );
+
+unit_vector: <T> (v: vec3_template<T>) 
+    v / v.length();

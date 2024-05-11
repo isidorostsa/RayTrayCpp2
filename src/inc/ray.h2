@@ -1,0 +1,25 @@
+#pragma once
+
+#include "vec3.h"
+
+ray: type = {
+    private orig: point3;
+    private dir: vec3;
+
+    operator=: (out this, o: point3, d: vec3) = {
+        orig = o;
+        dir = d;
+    }
+
+    origin: (this) -> forward point3 = {
+        return orig;
+    }
+
+    direction: (this) -> forward vec3 = {
+        return dir;
+    }
+
+    at: (this, t: double) -> point3 = {
+        return orig + t*dir;
+    }
+}
