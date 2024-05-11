@@ -76,7 +76,7 @@ operator*: <T> (v: vec3_template<T>, t: _)
     t * v;
 
 operator/: <T> (v: vec3_template<T>, t: _)
-    ((cpp2::unsafe_narrow<T>(1))/t) * v;
+    (1.0/t) * v;
 
 dot: <T> (v: vec3_template<T>, u: vec3_template<T>)
     v.e[0] * u.e[0] + 

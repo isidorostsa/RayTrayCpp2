@@ -31,9 +31,13 @@
 *.out
 *.app
 
-# Build in-source
+# CMake artefacts
 build/*
+*CMakePresets.json
 
 # Ide specifics
 .idea
 .vscode
+
+# Images created
+*.ppm
