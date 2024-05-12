@@ -1,55 +1,45 @@
 #include "vec3.h"
 #include "color.h"
 #include "ray.h"
+#include "sphere.h"
 
 ray_color: (r: ray) -> color == {
 
-    sphere_center := point3(0, 0, -1);
+    s := sphere(point3(0, 0, -1), 0.5);
 
-    t := hit_sphere(sphere_center, 0.5, r);
+    record := s.hit(r, 0, 1000);
 
-    if (t > 0) {
-        N := unit_vector(r.at(t) - sphere_center);
+    // Monadic methods
+    return record.
+            transform(
+                :(h: hittable::hit_record) 0.5*(h.norm + color(1, 1, 1));
+            ).value_or(
+                :() -> _ = {
+                    unit_dir :=  r.direction().unit_vector()$;
+                    a := 0.5*(unit_dir.y() + 1.0);
+
+                    white := color(1.0, 1.0, 1.0);
+                    blue_ish := color(0.5, 0.7, 1.0);
+
+                    return (1.0-a)*white + a*blue_ish;
+                }()
+            );
+
+/*
+    // Conventional 'optional' way
+    if (record) { // We draw the sphere
         normalize_color := color(1, 1, 1);
-        return 0.5*(N + normalize_color);
+        return 0.5*(record.value().norm + normalize_color);
+    } else {      // We draw the background 
+        unit_dir :=  r.direction().unit_vector();
+        a := 0.5*(unit_dir.y() + 1.0);
+
+        white := color(1.0, 1.0, 1.0);
+        blue_ish := color(0.5, 0.7, 1.0);
+
+        return (1.0-a)*white + a*blue_ish;
     }
-
-    unit_dir :=  r.direction().unit_vector();
-    a := 0.5*(unit_dir.y() + 1.0);
-
-    white := color(1.0, 1.0, 1.0);
-    blue_ish := color(0.5, 0.7, 1.0);
-
-    return (1.0-a)*white + a*blue_ish;
-}
-
-hit_sphere: (center: point3, radious: double, r: ray) -> double == {
-    orig_to_ct := center - r.origin();
-
-    // coeffs
-    a := r.direction().length_squared();
-    h := dot(r.direction(), orig_to_ct);
-    c := orig_to_ct.length_squared() - radious*radious;
-
-    // such that t = (-b +/- sqrt(b^2 - 4ac)) / 2a
-    // implies that the point p = ray.at(t) is on the 
-    // surface of the sphere with the given center and 
-    // radius. If p is a single point then it is on the 
-    // border of the sphere from our pov. If it is 2 points
-    // then the ray is going through the sphere and one of 
-    // the points is the entry and the other the exit.
-
-    // We only have one sphere, in front of the camera,
-    // so t is always non-negative. Thus, the (-) solution
-    // is a smaller number and represents the entry point.
-
-    discriminant := h*h - a*c;
-
-    if (discriminant < 0) {
-        return -1.0;
-    } else {
-        return (h - std::sqrt(discriminant)) / a;
-    }
+*/
 }
 
 main: (args) -> int

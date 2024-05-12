@@ -34,14 +34,14 @@ vec3_template: <T> type = {
         return this;
     }
 
-    operator*=: (inout this, t: _) -> forward vec3_template = {
+    operator*=: (inout this, t) -> forward vec3_template = {
         e[0] *= t;
         e[1] *= t;
         e[2] *= t;
         return this;
     }
 
-    operator/=: (inout this, t: _) -> forward vec3_template = {
+    operator/=: (inout this, t) -> forward vec3_template = {
         return this *= 1/t;
     }
 
@@ -69,13 +69,13 @@ operator+: <T> (u: vec3_template<T>, v: vec3_template<T>)
 operator*: <T> (u: vec3_template<T>, v: vec3_template<T>)
     vec3_template<T>(u.e[0] * v.e[0], u.e[1] * v.e[1], u.e[2] * v.e[2]);
 
-operator*: <T> (t: _, v: vec3_template<T>)
+operator*: <T> (t, v: vec3_template<T>)
     vec3_template<T>(t * v.e[0], t * v.e[1], t * v.e[2]);
 
-operator*: <T> (v: vec3_template<T>, t: _)
+operator*: <T> (v: vec3_template<T>, t)
     t * v;
 
-operator/: <T> (v: vec3_template<T>, t: _)
+operator/: <T> (v: vec3_template<T>, t)
     (1.0/t) * v;
 
 dot: <T> (v: vec3_template<T>, u: vec3_template<T>)

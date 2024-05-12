@@ -1,0 +1,19 @@
+#pragma once
+
+#include "ray.h"
+
+hittable: @interface type = {
+
+    hit_record: @struct type = {
+        p: point3;
+        norm: vec3;
+        t: double;
+    }
+
+    hit: (
+        this,
+        r: ray,
+        ray_tmin: double,
+        ray_tmax: double,
+    ) -> std::optional<hit_record>;
+}

@@ -1,0 +1,67 @@
+#pragma once
+
+#include "hittable.h"
+
+sphere: type = {
+    this: hittable;
+
+    private center: point3;
+    private radious: double;
+
+    get_center: (this) center;
+    get_radious: (this) radious;
+
+    operator=: (out this, c: point3, r: double) = {
+        hittable = _;
+        center = c;
+        radious = r;
+    }
+
+    hit: (
+        final this,
+        r: ray,
+        ray_tmin: double,
+        ray_tmax: double
+    ) -> std::optional<hittable::hit_record> = {
+        orig_to_ct := center - r.origin();
+
+        a := r.direction().length_squared();
+        h := dot(r.direction(), orig_to_ct);
+        c := orig_to_ct.length_squared() - radious*radious;
+
+        // such that t = (h +/- sqrt(h^2 - ac)) / a
+        // implies that the point p = ray.at(t) is on the 
+        // surface of the sphere with the given center and 
+        // radius. If p is a single point then it is on the 
+        // border of the sphere from our pov. If it is 2 points
+        // then the ray is going through the sphere and one of 
+        // the points is the entry and the other the exit.
+
+        // We only have one sphere, in front of the camera,
+        // so t is always non-negative. Thus, the (-) solution
+        // is a smaller number and represents the entry point.
+
+        discriminant := h*h - a*c;
+
+        discriminant_sqrt := std::sqrt(discriminant);
+
+        // Find closest root that is also in the given range
+        root := (h - discriminant_sqrt) / a;
+
+        if !(ray_tmin <= root <= ray_tmax) {
+            root = (h + discriminant_sqrt) / a;
+            if !(ray_tmin <= root <= ray_tmax) {
+                return std::nullopt;
+            }
+        }
+
+        contact_point := r.at(root);
+
+        return std::make_optional<hittable::hit_record>(
+            contact_point,
+            (contact_point - center) / radious,
+            root
+        );
+    }
+
+}
