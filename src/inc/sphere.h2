@@ -42,26 +42,65 @@ sphere: type = {
         // is a smaller number and represents the entry point.
 
         discriminant := h*h - a*c;
-
         discriminant_sqrt := std::sqrt(discriminant);
 
         // Find closest root that is also in the given range
-        root := (h - discriminant_sqrt) / a;
+        root: std::optional<double> = std::nullopt;
 
-        if !(ray_tmin <= root <= ray_tmax) {
-            root = (h + discriminant_sqrt) / a;
-            if !(ray_tmin <= root <= ray_tmax) {
-                return std::nullopt;
+        {
+            candidate_root := (h + discriminant_sqrt) / a;
+            if ray_tmin <= candidate_root <= ray_tmax {
+                root = candidate_root;
+            } else {
+                candidate_root = (h + discriminant_sqrt) / a;
+                if ray_tmin <= candidate_root <= ray_tmax {
+                    root = candidate_root;
+                }
             }
         }
+         
+        /*
+        Design choice: making root inaccessible if found_root is false
+        */
 
-        contact_point := r.at(root);
+        return root.transform(
+            :(root_val: double) -> hittable::hit_record = {
+                contact_point := r.at(root_val);
+                outward_normal := (contact_point - center$) / radious$;
 
-        return std::make_optional<hittable::hit_record>(
-            contact_point,
-            (contact_point - center) / radious,
-            root
+                // Ideally would want c++20 aggregate initialization here
+                return hittable::hit_record(
+                    contact_point,
+                    outward_normal,
+                    root_val
+                );
+            }
         );
+
+        /*
+        root := (h - discriminant_sqrt) / a;
+
+        found_root: bool = (ray_tmin <= root <= ray_tmax);
+
+        if !found_root { // check if the other root works
+            root = (h + discriminant_sqrt) / a;
+            found_root = (ray_tmin <= root <= ray_tmax);
+        }
+
+        if found_root {
+            contact_point := r.at(root);
+            outward_normal := (contact_point - center) / radious;
+
+            record = std::make_optional<hittable::hit_record>(
+                contact_point,                      // contact point
+                outward_normal,                     // norm
+                root,                               // t
+
+            );
+        } else {
+            record = std::nullopt;
+        }
+        */
     }
 
 }

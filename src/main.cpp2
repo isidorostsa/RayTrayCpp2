@@ -25,21 +25,20 @@ ray_color: (r: ray) -> color == {
                 }()
             );
 
-/*
-    // Conventional 'optional' way
-    if (record) { // We draw the sphere
-        normalize_color := color(1, 1, 1);
-        return 0.5*(record.value().norm + normalize_color);
-    } else {      // We draw the background 
-        unit_dir :=  r.direction().unit_vector();
-        a := 0.5*(unit_dir.y() + 1.0);
+    // Conventional checking the optional way
 
-        white := color(1.0, 1.0, 1.0);
-        blue_ish := color(0.5, 0.7, 1.0);
+    // if (record) { // We draw the sphere
+    //     normalize_color := color(1, 1, 1);
+    //     return 0.5*(record.value().norm + normalize_color);
+    // } else {      // We draw the background 
+    //     unit_dir :=  r.direction().unit_vector();
+    //     a := 0.5*(unit_dir.y() + 1.0);
 
-        return (1.0-a)*white + a*blue_ish;
-    }
-*/
+    //     white := color(1.0, 1.0, 1.0);
+    //     blue_ish := color(0.5, 0.7, 1.0);
+
+    //     return (1.0-a)*white + a*blue_ish;
+    // }
 }
 
 main: (args) -> int
@@ -83,7 +82,8 @@ main: (args) -> int
     // Rendering
 
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
-
+    
+    start_time := std::chrono::system_clock::now();
     for std::views::iota(0 as uint, image_height) do(j) {
         std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
         for std::views::iota(0 as uint, image_width) do (i) {
@@ -93,10 +93,14 @@ main: (args) -> int
 
             r := ray(camera_center, ray_direction);
 
-
             pixel_color: color = ray_color(r);
 
             write_color(std::cout, pixel_color);
         }
     }
+    duration := std::chrono::system_clock::now() - start_time;
+
+    avg_time_per_pixel := duration / (image_height * image_width);
+
+    std::clog << "\rFinished, average time per pixel: " << avg_time_per_pixel << std::endl;
 }
