@@ -18,8 +18,8 @@ ray_color: (r: ray) -> color == {
                     unit_dir :=  r.direction().unit_vector()$;
                     a := 0.5*(unit_dir.y() + 1.0);
 
-                    white := color(1.0, 1.0, 1.0);
-                    blue_ish := color(0.5, 0.7, 1.0);
+                    white:== color(1.0, 1.0, 1.0);
+                    blue_ish:== color(0.5, 0.7, 1.0);
 
                     return (1.0-a)*white + a*blue_ish;
                 }()
@@ -57,25 +57,25 @@ main: (args) -> int
     viewport_height: double == 2.0;
     viewport_width: double == viewport_height * 
         (cpp2::unsafe_narrow<double>(image_width)/image_height);
-    camera_center := point3(0, 0, 0);
+    camera_center: point3 == (0, 0, 0);
 
     //  Vectors across horizontal and vertical edges of the viewport window
-    viewport_u := vec3(viewport_width, 0, 0);
-    viewport_v := vec3(0, -viewport_height, 0);
+    viewport_u: vec3 == (viewport_width, 0, 0);
+    viewport_v: vec3 == (0, -viewport_height, 0);
 
     // Horizontal and Vecrtival vectors from pixel to pixel
-    pixel_du := viewport_u / image_width;
-    pixel_dv := viewport_v / image_height;
+    pixel_du:== viewport_u / image_width;
+    pixel_dv:== viewport_v / image_height;
 
     // Calculate the upper left corner of the viewport window
-    viewport_upper_left := 
+    viewport_upper_left :==
             camera_center - // starting from 0
             vec3(0, 0, focal_length) - // to the center of the viewport
             viewport_u/2 - // vvv
             viewport_v/2;  // to the upper left side
 
     // calculate the center of the upper left (0, 0) pixel
-    pixel00_loc := 
+    pixel00_loc :== 
             viewport_upper_left +
             0.5 * (pixel_du + pixel_dv);
 
@@ -100,7 +100,7 @@ main: (args) -> int
     }
     duration := std::chrono::system_clock::now() - start_time;
 
-    avg_time_per_pixel := duration / (image_height * image_width);
+    avg_time_per_pixel := duration / (image_height);
 
-    std::clog << "\rFinished, average time per pixel: " << avg_time_per_pixel << std::endl;
+    std::clog << "\rFinished, average time per vertical line: " << avg_time_per_pixel << std::endl;
 }
