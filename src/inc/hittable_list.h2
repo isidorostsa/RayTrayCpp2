@@ -1,0 +1,40 @@
+#pragma once
+
+#include "hittable.h"
+
+using std::make_shared;
+using std::shared_ptr;
+
+hittable_list: type = {
+    this: hittable;
+
+    public objects: std::vector<shared_ptr<hittable>>;
+
+    clear: (inout this) objects.clear();
+
+    add: (inout this, obj: shared_ptr<hittable>) objects.push_back(obj);
+    
+    hit: (
+        final this,
+        r: ray,
+        ray_tmin: double,
+        ray_tmax: double
+    ) -> (record: std::optional<hittable::hit_record>) = {
+        record = std::nullopt;
+        
+
+        // Seems weird bad, untested performance
+        for objects do (in obj) {
+            record = obj*.
+                        hit(
+                            r,        // ray
+                            ray_tmin, // tmin 
+                            record.   // tmax
+                                transform(:(t) t.dist_to_point).
+                                value_or(ray_tmax)
+                        ).
+                        or_else(:() record);
+        }
+    }
+ 
+}

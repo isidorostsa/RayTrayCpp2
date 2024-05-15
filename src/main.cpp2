@@ -2,24 +2,20 @@
 #include "color.h"
 #include "ray.h"
 #include "sphere.h"
+#include "hittable_list.h"
 
-ray_color: (r: ray) -> color == {
-
-    s := sphere(point3(0, 0, -1), 0.5);
-
-    record := s.hit(r, 0, 1000);
-
+ray_color: (r: ray, world: hittable) -> color == {
     // Monadic methods
-    return record.
+    return world.hit(r, 0, 100000).
             transform(
-                :(h: hittable::hit_record) 0.5*(h.norm + color(1, 1, 1));
+                :(h: hittable::hit_record) -> color = 0.5*(h.reflective_normal + color(1, 1, 1))
             ).value_or(
-                :() -> _ = {
+                :() -> color = {
                     unit_dir :=  r.direction().unit_vector()$;
                     a := 0.5*(unit_dir.y() + 1.0);
 
-                    white:== color(1.0, 1.0, 1.0);
-                    blue_ish:== color(0.5, 0.7, 1.0);
+                    white: color == (1.0, 1.0, 1.0);
+                    blue_ish: color == (0.5, 0.7, 1.0);
 
                     return (1.0-a)*white + a*blue_ish;
                 }()
@@ -46,7 +42,7 @@ main: (args) -> int
     // Calculate image dimentions
     aspect_ratio: double == 16.0/9.0;
     
-    image_width: uint == 400;
+    image_width: uint == 1200;
     image_height: uint == cpp2::unsafe_narrow<uint>(image_width/aspect_ratio);
     static_assert(image_height, "Height must be greater than 0");
 
@@ -64,8 +60,8 @@ main: (args) -> int
     viewport_v: vec3 == (0, -viewport_height, 0);
 
     // Horizontal and Vecrtival vectors from pixel to pixel
-    pixel_du:== viewport_u / image_width;
-    pixel_dv:== viewport_v / image_height;
+    pixel_du: vec3 == viewport_u / image_width;
+    pixel_dv: vec3 == viewport_v / image_height;
 
     // Calculate the upper left corner of the viewport window
     viewport_upper_left :==
@@ -81,6 +77,11 @@ main: (args) -> int
 
     // Rendering
 
+    world: hittable_list = ();
+
+    _ = world.add(make_shared<sphere>(point3(0,-100.5,-1), 100));
+    _ = world.add(make_shared<sphere>(point3(0,0,-1), 0.5));
+
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
     
     start_time := std::chrono::system_clock::now();
@@ -93,7 +94,7 @@ main: (args) -> int
 
             r := ray(camera_center, ray_direction);
 
-            pixel_color: color = ray_color(r);
+            pixel_color: color = ray_color(r, world);
 
             write_color(std::cout, pixel_color);
         }

@@ -46,7 +46,21 @@ sphere: type = {
 
         // Find closest root that is also in the given range
         root:= :() -> std::optional<double> == {
-            candidate_root := (h + discriminant_sqrt) / a;
+            /*
+            Design choice: In the begining this was done without
+            a directly in this function without a lambda. This caused 
+            the "candidate_root" variable to escape this part of the
+            function. But the only reason we are using an optional instead
+            of just keeping a root variable and a boolean to denote if it
+            is within the correct range, is to *make invalid state unrepresentable*,
+            e.g. preventing a case where the root would be accessed without checking
+            if it is within the range. All of that lead to the design choice that 
+            the part of the code that deals with roots should not expose any variables,
+            and thus an extra function was used instead. It is a lambda only for 
+            simplicity. If all this is not optimized away this approach is 
+            very bad though.
+            */
+            candidate_root := (h - discriminant_sqrt) / a;
             if ray_tmin <= candidate_root <= ray_tmax {
                 return candidate_root;
             } else {
@@ -64,40 +78,20 @@ sphere: type = {
 
         return root.transform(
             :(root_val: double) -> hittable::hit_record = {
-                contact_point := r.at(root_val);
-                outward_normal := (contact_point - center) / radious;
+                record := hittable::hit_record();
 
-                // Ideally would want c++20 aggregate initialization here
-                return hittable::hit_record(
-                    contact_point,
-                    outward_normal,
-                    root_val
-                );
+                record.contact_point = r.at(root_val);
+                record.reflective_normal = (record.contact_point - center) / radious;
+                record.dist_to_point = root_val;
+                record.hit_front_face = (dot(r.direction(), record.reflective_normal) < 0);
+
+                if !record.hit_front_face {
+                    record.reflective_normal *= -1;
+                }
+
+                return record;
             }
         );
-
-        // root := (h - discriminant_sqrt) / a;
-
-        // found_root: bool = (ray_tmin <= root <= ray_tmax);
-
-        // if !found_root { // check if the other root works
-        //     root = (h + discriminant_sqrt) / a;
-        //     found_root = (ray_tmin <= root <= ray_tmax);
-        // }
-
-        // if found_root {
-        //     contact_point := r.at(root);
-        //     outward_normal := (contact_point - center) / radious;
-
-        //     record = std::make_optional<hittable::hit_record>(
-        //         contact_point,                      // contact point
-        //         outward_normal,                     // norm
-        //         root,                               // t
-
-        //     );
-        // } else {
-        //     record = std::nullopt;
-        // }
     }
 
 }

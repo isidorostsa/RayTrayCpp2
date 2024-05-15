@@ -9,8 +9,8 @@ The goal of this personal project is to showcase and experiment with Cpp2. I am 
 Usage
 ---
 To build this project you will need [Modern CMake's cppfront Wrapper](https://github.com/modern-cmake/cppfront). You will need to provide the `cppfront_DIR` to CMake. I am currently using cppfront with the following flags:
-- -in to avoid modules for the time being
-- -no-s because disabling bounds-checking yielded a 20x improvement. Also currently it is not possible to index arrays in a consteval context, even when both the size of the array and the index are known constants.
+- `-in` to avoid modules for the time being
+- `-no-s` because disabling bounds-checking yielded a 20x improvement. Also currently it is not possible to index arrays in a consteval context, even when both the size of the array and the index are known constants.
 
 Credits
 ---

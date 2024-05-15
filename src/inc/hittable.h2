@@ -5,9 +5,10 @@
 hittable: @interface type = {
 
     hit_record: @struct type = {
-        p: point3;
-        norm: vec3;
-        t: double;
+        contact_point: point3;
+        reflective_normal: vec3;
+        dist_to_point: double;
+        hit_front_face: bool;
     }
 
     hit: (
