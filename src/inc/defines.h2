@@ -1,0 +1,12 @@
+#pragma once
+
+infinity : double == std::numeric_limits<double>::infinity();
+pi : double == 3.1415926535897932385;
+
+degrees_to_radians: (degrees: double) == degrees * pi / 180.0;
+
+// Common headers
+#include "color.h"
+#include "vec3.h"
+#include "ray.h"
+#include "interval.h"

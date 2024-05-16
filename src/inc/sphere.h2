@@ -4,6 +4,7 @@
 
 sphere: type = {
     this: hittable;
+    using hittable::hit_record;
 
     private center: point3;
     private radious: double;
@@ -20,9 +21,8 @@ sphere: type = {
     hit: (
         final this,
         r: ray,
-        ray_tmin: double,
-        ray_tmax: double
-    ) -> std::optional<hittable::hit_record> == {
+        ray_interval: interval
+    ) -> std::optional<hit_record> == {
         orig_to_ct := center - r.origin();
 
         a := r.direction().length_squared();
@@ -61,11 +61,11 @@ sphere: type = {
             very bad though.
             */
             candidate_root := (h - discriminant_sqrt) / a;
-            if ray_tmin <= candidate_root <= ray_tmax {
+            if ray_interval.surrounds(candidate_root) {
                 return candidate_root;
             } else {
                 candidate_root = (h + discriminant_sqrt) / a;
-                if ray_tmin <= candidate_root <= ray_tmax {
+                if ray_interval.surrounds(candidate_root) {
                     return candidate_root;
                 }
             }
@@ -77,8 +77,8 @@ sphere: type = {
         */
 
         return root.transform(
-            :(root_val: double) -> hittable::hit_record = {
-                record := hittable::hit_record();
+            :(root_val: double) -> hit_record = {
+                record := hit_record();
 
                 record.contact_point = r.at(root_val);
                 record.reflective_normal = (record.contact_point - center) / radious;

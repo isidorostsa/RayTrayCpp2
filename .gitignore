@@ -41,3 +41,6 @@ build/*
 
 # Images created
 *.ppm
+
+# Unpublished files
+*optional_extensions.h2

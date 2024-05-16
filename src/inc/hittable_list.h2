@@ -8,6 +8,8 @@ using std::shared_ptr;
 hittable_list: type = {
     this: hittable;
 
+    using hittable::hit_record;
+
     public objects: std::vector<shared_ptr<hittable>>;
 
     clear: (inout this) objects.clear();
@@ -17,23 +19,26 @@ hittable_list: type = {
     hit: (
         final this,
         r: ray,
-        ray_tmin: double,
-        ray_tmax: double
-    ) -> (record: std::optional<hittable::hit_record>) = {
+        ray_interval: interval;
+    ) -> (record: std::optional<hit_record>) = {
         record = std::nullopt;
-        
 
         // Seems weird bad, untested performance
-        for objects do (in obj) {
+        for objects do (obj) {
             record = obj*.
                         hit(
                             r,        // ray
-                            ray_tmin, // tmin 
-                            record.   // tmax
-                                transform(:(t) t.dist_to_point).
-                                value_or(ray_tmax)
+                            record.   // interval
+                                transform(
+                                    :(t) interval(
+                                        ray_interval.min,
+                                        t.dist_to_point
+                                    )
+                                ).
+                                value_or(ray_interval)
                         ).
                         or_else(:() record);
+
         }
     }
  

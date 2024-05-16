@@ -1,0 +1,33 @@
+#pragma once
+
+#include "defines.h"
+
+interval: type = {
+    // Is it intentional that initialization order must 
+    // be the same as declaration order? TODO
+    public min: double;
+    public max: double;
+
+    operator=: (out this) == {
+        min = -infinity;
+        max = infinity;
+    }
+
+    // Also implicitly assignment on initialized types
+    operator=: (out this, _min: double, _max: double) == {
+        min = _min;
+        max = _max;
+    }
+
+    operator=: (out this, that) == {
+        min = that.min;
+        max = that.max;
+    }
+
+    size: (this) -> double == max - min;
+    contains: (this, x) -> bool == min <= x <= max;
+    surrounds: (this, x) -> bool == min < x < max;
+
+    empty: interval == (+infinity, -infinity);
+    universe: interval == (-infinity, +infinity);
+}

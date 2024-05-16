@@ -1,12 +1,11 @@
-#include "vec3.h"
-#include "color.h"
-#include "ray.h"
+#include "defines.h"
+
 #include "sphere.h"
 #include "hittable_list.h"
 
 ray_color: (r: ray, world: hittable) -> color == {
     // Monadic methods
-    return world.hit(r, 0, 100000).
+    return world.hit(r, interval(0, infinity)).
             transform(
                 :(h: hittable::hit_record) -> color = 0.5*(h.reflective_normal + color(1, 1, 1))
             ).value_or(
@@ -82,7 +81,10 @@ main: (args) -> int
     _ = world.add(make_shared<sphere>(point3(0,-100.5,-1), 100));
     _ = world.add(make_shared<sphere>(point3(0,0,-1), 0.5));
 
-    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+    output_file: std::ofstream = ();
+    output_file.open("image.ppm");
+
+    output_file << "P3\n" << image_width << ' ' << image_height << "\n255\n";
     
     start_time := std::chrono::system_clock::now();
     for std::views::iota(0 as uint, image_height) do(j) {
@@ -96,12 +98,12 @@ main: (args) -> int
 
             pixel_color: color = ray_color(r, world);
 
-            write_color(std::cout, pixel_color);
+            write_color(output_file, pixel_color);
         }
     }
     duration := std::chrono::system_clock::now() - start_time;
+    output_file.close();
 
-    avg_time_per_pixel := duration / (image_height);
-
-    std::clog << "\rFinished, average time per vertical line: " << avg_time_per_pixel << std::endl;
+    avg_time_per_pixel := duration / (image_height*image_height);
+    std::clog << "\rFinished, average time per pixel: " << avg_time_per_pixel << std::endl;
 }
