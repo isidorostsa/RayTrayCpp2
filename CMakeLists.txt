@@ -17,6 +17,7 @@ set(cpp2headers
     src/inc/hittable_list.h2
     src/inc/defines.h2
     src/inc/interval.h2
+    src/inc/optional_extensions.h2
 )
 
 cppfront_generate_cpp(cpp1headers ${cpp2headers})
