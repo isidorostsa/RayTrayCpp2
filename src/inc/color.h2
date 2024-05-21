@@ -9,5 +9,5 @@ write_color: (inout out_stream: std::ostream, pixel_color: color) = {
     gbyte := cpp2::unsafe_narrow<int>(255.999 * pixel_color.y());
     bbyte := cpp2::unsafe_narrow<int>(255.999 * pixel_color.z());
 
-    out_stream << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
+    out_stream << "(rbyte)$ (gbyte)$ (bbyte)$\n";
 }
