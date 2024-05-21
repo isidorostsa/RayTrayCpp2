@@ -11,6 +11,7 @@ add_executable(main src/main.cpp2)
 set(cpp2headers 
     src/inc/sphere.h2
     src/inc/color.h2
+    src/inc/camera.h2
     src/inc/vec3.h2
     src/inc/ray.h2
     src/inc/hittable.h2

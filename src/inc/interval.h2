@@ -30,4 +30,5 @@ interval: type = {
 
     empty: interval == (+infinity, -infinity);
     universe: interval == (-infinity, +infinity);
+    front: interval == (0.0, +infinity);
 }

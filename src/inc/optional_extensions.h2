@@ -2,7 +2,7 @@
 // Sort of a lazy value_or, that is meant to be used with UFCS 
 value_else: <T> (
     opt: std::optional<T>,
-    foo // would like to write : () -> T, but cppfront crashes
+    foo //
 ) -> T == {
 
     foo_optional:= 

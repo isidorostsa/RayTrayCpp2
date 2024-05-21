@@ -3,6 +3,7 @@
 #include "sphere.h"
 #include "hittable_list.h"
 #include "optional_extensions.h"
+#include "camera.h"
 
 ray_color: (r: ray, world: hittable) -> color == {
     // Monadic methods
@@ -41,43 +42,13 @@ ray_color: (r: ray, world: hittable) -> color == {
 
 main: (args) -> int
 = {
-    // Calculate image dimentions
-    aspect_ratio: double == 16.0/9.0;
-    
-    image_width: uint == 1200;
-    image_height: uint == cpp2::unsafe_narrow<uint>(image_width/aspect_ratio);
-    static_assert(image_height, "Height must be greater than 0");
-
-    // Camera related
-
-    focal_length: double == 1.0;
-
-    viewport_height: double == 2.0;
-    viewport_width: double == viewport_height * 
-        (cpp2::unsafe_narrow<double>(image_width)/image_height);
-    camera_center: point3 == (0, 0, 0);
-
-    //  Vectors across horizontal and vertical edges of the viewport window
-    viewport_u: vec3 == (viewport_width, 0, 0);
-    viewport_v: vec3 == (0, -viewport_height, 0);
-
-    // Horizontal and Vecrtival vectors from pixel to pixel
-    pixel_du: vec3 == viewport_u / image_width;
-    pixel_dv: vec3 == viewport_v / image_height;
-
-    // Calculate the upper left corner of the viewport window
-    viewport_upper_left :==
-            camera_center - // starting from 0
-            vec3(0, 0, focal_length) - // to the center of the viewport
-            viewport_u/2 - // vvv
-            viewport_v/2;  // to the upper left side
-
-    // calculate the center of the upper left (0, 0) pixel
-    pixel00_loc :== 
-            viewport_upper_left +
-            0.5 * (pixel_du + pixel_dv);
-
-    // Rendering
+    cam: camera == (
+        16.0/9.0, // aspect_ratio
+        1200, // image_width
+        1.0, // focal_length
+        vec3(0, 0, 0), // camera_center
+        2.0 // viewport_height 
+    );
 
     world: hittable_list = ();
 
@@ -87,26 +58,14 @@ main: (args) -> int
     output_file: std::ofstream = ();
     output_file.open("image.ppm");
 
-    output_file << "P3\n" << image_width << ' ' << image_height << "\n255\n";
-    
     start_time := std::chrono::system_clock::now();
-    for std::views::iota(0 as uint, image_height) do(j) {
-        std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-        for std::views::iota(0 as uint, image_width) do (i) {
-            pixel_center := pixel00_loc + (i * pixel_du) + (j * pixel_dv);
-
-            ray_direction := pixel_center - camera_center;
-
-            r := ray(camera_center, ray_direction);
-
-            pixel_color: color = ray_color(r, world);
-
-            write_color(output_file, pixel_color);
-        }
-    }
+    cam.render(world, output_file);
     duration := std::chrono::system_clock::now() - start_time;
     output_file.close();
 
-    avg_time_per_pixel := duration / (image_height*image_height);
-    std::clog << "\rFinished, average time per pixel: " << avg_time_per_pixel << std::endl;
+    ms: std::chrono::milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+    std::clog << "\rFinished, total time: " << ms << std::endl;
+
+    // avg_time_per_pixel := duration / (image_height*image_height);
+    // std::clog << "\rFinished, average time per pixel: " << avg_time_per_pixel << std::endl;
 }

@@ -1,0 +1,115 @@
+#pragma once
+
+#include "defines.h"
+#include "hittable.h"
+#include "optional_extensions.h"
+
+/*
+Camera is responsible for sending out rays and for
+using their records to construct the image.
+*/
+camera: type = {
+    private aspect_ratio: const double;
+    private image_width: const uint;
+    private image_height: const uint;
+    private focal_length: const double;
+    private viewport_height: const double;
+    private viewport_width: const double;
+    private camera_center: const point3;
+    private viewport_u: const vec3; 
+    private viewport_v: const vec3; 
+    private pixel_du: const vec3;
+    private pixel_dv: const vec3;
+    private viewport_upper_left: const point3; 
+    private pixel00_loc: const point3; 
+
+    operator=: (
+        out this,
+        aspect_ratio_in: double,
+        image_width_in: uint,
+        focal_length_in: double,
+        camera_center_in: point3,
+        viewport_height_in: double;
+    ) == {
+        // Calculate image dimentions
+        aspect_ratio = aspect_ratio_in;
+        
+        image_width = image_width_in;
+        image_height = cpp2::unsafe_narrow<uint>(image_width/aspect_ratio);
+        focal_length = focal_length_in;
+
+        // Camera related
+
+        // viewport_height = 2.0;
+        viewport_height = viewport_height_in;
+        viewport_width = viewport_height * 
+            (cpp2::unsafe_narrow<double>(image_width)/image_height);
+        camera_center = camera_center_in;
+
+
+        //  Vectors across horizontal and vertical edges of the viewport window
+        viewport_u = (viewport_width, 0, 0);
+        viewport_v = (0, -viewport_height, 0);
+
+        // Horizontal and Vecrtival vectors from pixel to pixel
+        pixel_du = viewport_u / image_width;
+        pixel_dv = viewport_v / image_height;
+
+        // Calculate the upper left corner of the viewport window
+        viewport_upper_left =
+                camera_center - // starting from 0
+                vec3(0, 0, focal_length) - // to the center of the viewport
+                viewport_u/2 - // vvv
+                viewport_v/2;  // to the upper left side
+
+        // calculate the center of the upper left (0, 0) pixel
+        pixel00_loc = 
+                viewport_upper_left +
+                0.5 * (pixel_du + pixel_dv);
+    }
+
+
+    render: (this, world: hittable, inout stream: std::ostream) == {
+
+        stream << "P3\n(image_width)$ (image_height)$\n255\n";
+
+        for std::views::iota(0 as uint, image_height) do(j) {
+            std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+            for std::views::iota(0 as uint, image_width) do (i) {
+                pixel_center := pixel00_loc + (i * pixel_du) + (j * pixel_dv);
+
+                ray_direction := pixel_center - camera_center;
+
+                r := ray(camera_center, ray_direction);
+
+                pixel_color: color = ray_color(r, world);
+
+                write_color(stream, pixel_color);
+            }
+        }
+        std::clog << std::endl;
+    }
+
+    private ray_color: (this, r: ray, world: hittable) -> color == {
+
+        // This sort of represents the lazy value of the background
+        // color, evaluated by value_else only if needed.
+        background_color:= :() -> color == {
+            a := 0.5*(r&$*.direction().unit_vector().y() + 1.0);
+
+            white: color == (1.0, 1.0, 1.0);
+            blue_ish: color == (0.5, 0.7, 1.0);
+
+            return (1.0-a)*white + a*blue_ish;
+        };
+
+        surface_color:== :(h: hittable::hit_record) -> color == { 
+            return 0.5 * (h.reflective_normal + color(1, 1, 1));
+        };
+
+        return world.
+            hit(r, interval::front).
+            transform(surface_color).
+            value_else(background_color); // Used thanks to UFCS
+    }
+}
