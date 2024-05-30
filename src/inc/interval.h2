@@ -24,6 +24,8 @@ interval: type = {
         max = that.max;
     }
 
+    clamp: (this, x: double) -> double == std::clamp(x, min, max);
+
     size: (this) -> double == max - min;
     contains: (this, x) -> bool == min <= x <= max;
     surrounds: (this, x) -> bool == min < x < max;
@@ -32,3 +34,6 @@ interval: type = {
     universe: interval == (-infinity, +infinity);
     front: interval == (0.0, +infinity);
 }
+
+// This is meant to be used with UFCS on doubles.
+clamp: (x: double, interv: interval) -> double == interv.clamp(x);
