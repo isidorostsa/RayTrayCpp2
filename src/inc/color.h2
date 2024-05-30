@@ -1,13 +1,17 @@
 #pragma once
 
+#include "defines.h"
 #include "vec3.h"
 
 color: type == vec3_template<double>;
 
 write_color: (inout out_stream: std::ostream, pixel_color: color) = {
-    rbyte := cpp2::unsafe_narrow<int>(255.999 * pixel_color.x());
-    gbyte := cpp2::unsafe_narrow<int>(255.999 * pixel_color.y());
-    bbyte := cpp2::unsafe_narrow<int>(255.999 * pixel_color.z());
+    
+    intensity: interval == (0.0, 0.999);
+
+    rbyte := cpp2::unsafe_narrow<int>(256 * pixel_color.x().clamp(intensity));
+    gbyte := cpp2::unsafe_narrow<int>(256 * pixel_color.y().clamp(intensity));
+    bbyte := cpp2::unsafe_narrow<int>(256 * pixel_color.z().clamp(intensity));
 
     out_stream << "(rbyte)$ (gbyte)$ (bbyte)$\n";
 }

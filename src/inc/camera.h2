@@ -38,14 +38,11 @@ camera: type = {
         image_height = cpp2::unsafe_narrow<uint>(image_width/aspect_ratio);
         focal_length = focal_length_in;
 
-        // Camera related
-
         // viewport_height = 2.0;
         viewport_height = viewport_height_in;
         viewport_width = viewport_height * 
             (cpp2::unsafe_narrow<double>(image_width)/image_height);
         camera_center = camera_center_in;
-
 
         //  Vectors across horizontal and vertical edges of the viewport window
         viewport_u = (viewport_width, 0, 0);

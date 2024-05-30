@@ -29,49 +29,64 @@ sphere: type = {
         h := dot(r.direction(), orig_to_ct);
         c := orig_to_ct.length_squared() - radious*radious;
 
-        // such that t = (h +/- sqrt(h^2 - ac)) / a
-        // implies that the point p = ray.at(t) is on the 
-        // surface of the sphere with the given center and 
-        // radius. If p is a single point then it is on the 
-        // border of the sphere from our pov. If it is 2 points
-        // then the ray is going through the sphere and one of 
-        // the points is the entry and the other the exit.
+        /*
+            such that t = (h +/- sqrt(h^2 - ac)) / a
+            implies that the point p = ray.at(t) is on the 
+            surface of the sphere with the given center and 
+            radius. If p is a single point then it is on the 
+            border of the sphere from our pov. If it is 2 points
+            then the ray is going through the sphere and one of 
+            the points is the entry and the other the exit.
 
-        // We only have one sphere, in front of the camera,
-        // so t is always non-negative. Thus, the (-) solution
-        // is a smaller number and represents the entry point.
+            We only have one sphere, in front of the camera,
+            so t is always non-negative. Thus, the (-) solution
+            is a smaller number and represents the entry point.
+        */
 
         discriminant := h*h - a*c;
         discriminant_sqrt := std::sqrt(discriminant);
 
         // Find closest root that is also in the given range
-        root:= :() -> std::optional<double> == {
-            /*
-            Design choice: In the begining this was done without
-            a directly in this function without a lambda. This caused 
-            the "candidate_root" variable to escape this part of the
-            function. But the only reason we are using an optional instead
-            of just keeping a root variable and a boolean to denote if it
-            is within the correct range, is to *make invalid state unrepresentable*,
-            e.g. preventing a case where the root would be accessed without checking
-            if it is within the range. All of that lead to the design choice that 
-            the part of the code that deals with roots should not expose any variables,
-            and thus an extra function was used instead. It is a lambda only for 
-            simplicity. If all this is not optimized away this approach is 
-            very bad though.
-            */
+        root: std::optional<double>; 
+        /*
+            this particular piece of code has gone through 3 iterations:
+
+            1) Initialize the optional to nullopt and change if needed in 
+               the following clause
+            
+            This leaked the "candidate_root" parameter to the rest
+            of the function, and I thought that since we are using
+            an optional to avoid missusing the root's value when we should
+            not, we should not allow using "candidate_root" either. 
+            
+            Also this made it possible to forget to set root.
+            
+            2) Do the same computations but initialize with the return value
+               of a lambda that is called immediately.
+
+            However C++2 offers a better alternative: Checked 
+            uninitialized variables. This has the added benefit that 
+            it is impossible to forget to initialze root.
+
+            3) Do the same computations in a clause that initializes root.
+        */
+
+        {
             candidate_root := (h - discriminant_sqrt) / a;
+
             if ray_interval.surrounds(candidate_root) {
-                return candidate_root;
+                root = candidate_root;
             } else {
                 candidate_root = (h + discriminant_sqrt) / a;
                 if ray_interval.surrounds(candidate_root) {
-                    return candidate_root;
+                    root = candidate_root;
+                } else {
+                    root = std::nullopt;
                 }
             }
-            return std::nullopt;
-        }();
-         
+        }        
+
+ 
         /*
         Design choice: making root inaccessible if found_root is false
         */

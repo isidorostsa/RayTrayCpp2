@@ -5,8 +5,19 @@ pi : double == 3.1415926535897932385;
 
 degrees_to_radians: (degrees: double) == degrees * pi / 180.0;
 
+hidden: namespace = {
+    // No statics in C++2 yet
+    distribution: std::uniform_real_distribution<double> = (0.0, 1.0);
+    generator: std::mt19937 = ();
+
+    random_double: () -> double = {
+        return distribution(generator);
+    }
+}
+using hidden::random_double;
+
 // Common headers
-#include "color.h"
 #include "vec3.h"
 #include "ray.h"
 #include "interval.h"
+#include "color.h"
