@@ -22,6 +22,7 @@ camera: type = {
     private pixel_dv: const vec3;
     private viewport_upper_left: const point3; 
     private pixel00_loc: const point3; 
+    private samples_per_pixel: const uint;
 
     operator=: (
         out this,
@@ -29,7 +30,8 @@ camera: type = {
         image_width_in: uint,
         focal_length_in: double,
         camera_center_in: point3,
-        viewport_height_in: double;
+        viewport_height_in: double,
+        samples_per_pixel_in: uint;
     ) == {
         // Calculate image dimentions
         aspect_ratio = aspect_ratio_in;
@@ -63,6 +65,8 @@ camera: type = {
         pixel00_loc = 
                 viewport_upper_left +
                 0.5 * (pixel_du + pixel_dv);
+
+        samples_per_pixel = samples_per_pixel_in;
     }
 
 
