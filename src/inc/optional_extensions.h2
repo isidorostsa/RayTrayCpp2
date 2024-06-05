@@ -8,7 +8,7 @@ value_else: <T> (
     foo_optional:= 
         :() -> std::optional<T> = {
             // always full
-            return std::make_optional<T>(foo()$);
+            return std::make_optional<T>(std::invoke(foo$));
         };
  
     return opt.or_else(foo_optional).value();

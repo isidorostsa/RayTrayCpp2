@@ -23,22 +23,20 @@ hittable_list: type = {
     ) -> (record: std::optional<hit_record>) = {
         record = std::nullopt;
 
-        // Seems weird bad, untested performance
-        for objects do (obj) {
-            record = obj*.
-                        hit(
-                            r,        // ray
-                            record.   // interval
-                                transform(
-                                    :(t) interval(
-                                        ray_interval.min,
-                                        t.dist_to_point
-                                    )
-                                ).
-                                value_or(ray_interval)
-                        ).
-                        or_else(:() record);
-
+        // Changed this to use a "and_then" instead of 
+        // Doing a manual record = obj.hit ... .or_else(:() record)
+        // Still questionable
+        (copy curr_interv := ray_interval)
+        for objects do (obj) 
+        {
+            _ = obj*.
+                hit(r, curr_interv).
+                and_then(:(move t: hit_record) -> _ == {
+                    curr_interv&$*.set_max(t.dist_to_point); 
+                    record&$* = t;
+                    return std::optional<std::monostate>();
+                }
+            );
         }
     }
  

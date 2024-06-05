@@ -24,6 +24,9 @@ interval: type = {
         max = that.max;
     }
 
+    set_min: (inout this, m: double) == { min = m ;}
+    set_max: (inout this, m: double) == { max = m ;}
+
     clamp: (this, x: double) -> double == std::clamp(x, min, max);
 
     size: (this) -> double == max - min;
