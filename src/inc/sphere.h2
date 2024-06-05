@@ -69,22 +69,21 @@ sphere: type = {
             it is impossible to forget to initialze root.
 
             3) Do the same computations in a clause that initializes root.
+
+            4) Do the same in an 'if' with a definition statement.
         */
 
-        {
-            candidate_root := (h - discriminant_sqrt) / a;
-
+        (copy candidate_root := (h - discriminant_sqrt) / a) 
+        if ray_interval.surrounds(candidate_root) {
+            root = candidate_root;
+        } else {
+            candidate_root = (h - discriminant_sqrt) / a;
             if ray_interval.surrounds(candidate_root) {
                 root = candidate_root;
             } else {
-                candidate_root = (h + discriminant_sqrt) / a;
-                if ray_interval.surrounds(candidate_root) {
-                    root = candidate_root;
-                } else {
-                    root = std::nullopt;
-                }
+                root = std::nullopt;
             }
-        }        
+        }
 
  
         /*
