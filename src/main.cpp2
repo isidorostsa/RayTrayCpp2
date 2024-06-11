@@ -31,7 +31,4 @@ main: (args) -> int
 
     ms: std::chrono::milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
     std::clog << "\rFinished, total time: " << ms << std::endl;
-
-    // avg_time_per_pixel := duration / (image_height*image_height);
-    // std::clog << "\rFinished, average time per pixel: " << avg_time_per_pixel << std::endl;
 }

@@ -7,7 +7,8 @@ color: type == vec3_template<double>;
 
 write_color: (inout out_stream: std::ostream, pixel_color: color) = {
     
-    intensity: interval == (0.0, 0.999);
+    //                                  Why not
+    intensity: interval == (0.0, std::nextafter(1.0f, 0.0f));
 
     rbyte := cpp2::unsafe_narrow<int>(256 * pixel_color.x().clamp(intensity));
     gbyte := cpp2::unsafe_narrow<int>(256 * pixel_color.y().clamp(intensity));

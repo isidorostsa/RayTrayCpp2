@@ -23,6 +23,7 @@ camera: type = {
     private viewport_upper_left: const point3; 
     private pixel00_loc: const point3; 
     private samples_per_pixel: const uint;
+    private pixel_samples_scale: const double;
 
     operator=: (
         out this,
@@ -67,8 +68,29 @@ camera: type = {
                 0.5 * (pixel_du + pixel_dv);
 
         samples_per_pixel = samples_per_pixel_in;
+        pixel_samples_scale = 1.0 / samples_per_pixel;
     }
 
+    private random_square: () -> vec3 == {
+        width :== 1.0;
+        return vec3(
+            width*(random_double() - 0.5),
+            width*(random_double() - 0.5),
+            0.0
+        );
+    }
+
+    private get_nudged_ray: (this, i: int, j: int) -> ray = {
+        offset: const _ = random_square();
+        pixel_sample: const _ = pixel00_loc +
+                                ((i + offset.x()) * pixel_du) +
+                                ((j + offset.y()) * pixel_dv);
+
+        return ray(
+            camera_center, // origin
+            pixel_sample - camera_center // direction
+        );
+    }
 
     render: (this, world: hittable, inout stream: std::ostream) == {
 
@@ -77,15 +99,13 @@ camera: type = {
         for std::views::iota(0 as uint, image_height) do(j) {
             std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
             for std::views::iota(0 as uint, image_width) do (i) {
-                pixel_center := pixel00_loc + (i * pixel_du) + (j * pixel_dv);
-
-                ray_direction := pixel_center - camera_center;
-
-                r := ray(camera_center, ray_direction);
-
-                pixel_color: color = ray_color(r, world);
-
-                write_color(stream, pixel_color);
+                pixel_color: color = (0, 0, 0);
+                for std::views::iota(0 as uint, samples_per_pixel) do (n) {
+                    r: ray = get_nudged_ray(i, j);
+                    pixel_color += r.ray_color(world);
+                }
+                pixel_color *= pixel_samples_scale;
+                stream.write_color(pixel_color);
             }
         }
         std::clog << std::endl;
